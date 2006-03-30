@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: 10_forker.t 7623 2005-10-19 13:19:19Z wsnyder $
+# $Id: 10_forker.t 17052 2006-03-30 15:30:47Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2003-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2003-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License or the Perl Artistic License.
 ######################################################################
@@ -94,7 +94,7 @@ sub run_a_test {
     ok($p1->{my_done_time});   # Check actually ran at some point
     ok($p2->{my_done_time});
     ok($p3->{my_done_time});
-    # Check we executed in parallel (p1&p2), or with appopriate ordering (p1 then p2)
+    # Check we executed in parallel (p1&p2), or with appropriate ordering (p1 then p2)
     ok(tv_interval($p1->{my_done_time},$p2->{my_done_time}) < 0) if $params{run_it};
     ok(tv_interval($p1->{my_done_time},$p2->{my_done_time}) > 0) if $params{wait_it};
 

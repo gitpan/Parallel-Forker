@@ -1,8 +1,8 @@
 # Fork.pm -- Parallel management
-# $Id: Forker.pm 7623 2005-10-19 13:19:19Z wsnyder $
+# $Id: Forker.pm 17052 2006-03-30 15:30:47Z wsnyder $
 ######################################################################
 #
-# This program is Copyright 2002-2005 by Wilson Snyder.
+# This program is Copyright 2002-2006 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -24,7 +24,7 @@ use Schedule::Load;  # Really only needed for _subprocesses.  Cleanup if release
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.200';
+$VERSION = '1.201';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -120,9 +120,9 @@ sub _wait_one {
 
 sub poll {
     my $self = shift;
+    my $nrunning = 0;
     while ($self->{_activity}) {
 	$self->{_activity} = 0;
-	my $nrunning = 0;
 	foreach my $procref (values %{$self->{_running}}) {
 	    if (my $doneref = $procref->poll()) {
 		$self->{_activity} = 1;
@@ -136,6 +136,7 @@ sub poll {
 	    $nrunning++;
 	}
     }
+    $self->{_activity} = 1 if !$nrunning;  # No one running, we need to check for >run next poll()
 }
 
 sub ready_all {
@@ -165,7 +166,6 @@ sub write_tree {
     my $self = shift;
     my %params = (@_);
     defined $params{filename} or croak "%Error: filename not specified,";
-    use Data::Dumper;
 
     my %did_print;
     my $another_loop = 1;
@@ -325,7 +325,7 @@ defined. For example:
    my $p4 = $Fork->schedule(..., run_after => "p1 & !p2");
 
 Process p3 is specified to run after process p1 *or* p2 have completed
-successfully.  Process p4 will run after p1 finishes successfuly, and
+successfully.  Process p4 will run after p1 finishes successfully, and
 process p2 has completed with bad exit status.
 
 For more examples, see the tests.
@@ -444,7 +444,7 @@ Print a dump of the execution tree.
 The latest version is available from CPAN and from
 L<http://www.veripool.com/>.
 
-Copyright 2002-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
@@ -655,6 +655,7 @@ sub run {
     $self->{start_time} = time();
     if (my $pid = fork()) {
 	$self->{pid} = $pid;
+	$self->{pid_last_run} = $pid;
 	$self->{_forkref}{_running}{$self->{pid}} = $self;
 	delete $self->{_forkref}{_runable}{$self->{name}};
     } else {
@@ -785,6 +786,7 @@ sub _write_tree_line {
 	    if ($self->{end_time}) {
 		$cmt .= ", End ".format_loctime($self->{end_time});
 		$cmt .= ", Took ".format_time(($self->{end_time}-$self->{start_time}));
+		$cmt .= ", Pid ".$self->{pid_last_run};
 	    }
 	}
     } elsif ($linenum == 2) {
@@ -821,7 +823,7 @@ Parallel::Forker::Process - Single parallel fork process object
 Manage a single process under the control of Parallel::Forker.
 
 Processes transition over 6 states.  They begin in idle state, and are
-transitioned by the user into ready state.  As their dependancies complete,
+transitioned by the user into ready state.  As their dependencies complete,
 Parallel::Forker transitions them to the runable state.  As the max_proc
 limit permits, they transition to the running state, and executed.  On
 completion, they transition to the done state.  If a process depends on
@@ -903,7 +905,7 @@ Start this process now.
 The latest version is available from CPAN and from
 L<http://www.veripool.com/>.
 
-Copyright 2002-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
