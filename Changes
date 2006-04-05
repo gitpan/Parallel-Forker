@@ -2,6 +2,10 @@ Revision history for Perl extension Parallel::Forker
 
 The contributors that suggested a given feature are shown in [].
 	
+* Parallel::Forker 1.202 2006/04/05
+
+****	Remove Schedule::Load dependency.  [Alan Burlison]
+
 * Parallel::Forker 1.201 2006/03/30
 
 ***	Add last-run PID number to write_tree output file.  [Jeff Dutton]
@@ -21,7 +25,7 @@ The contributors that suggested a given feature are shown in [].
 **	First created
 
 ----------------------------------------------------------------------
-$Id: Changes 17052 2006-03-30 15:30:47Z wsnyder $
+$Id: Changes 17394 2006-04-05 13:49:26Z wsnyder $
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
