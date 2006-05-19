@@ -2,6 +2,10 @@ Revision history for Perl extension Parallel::Forker
 
 The contributors that suggested a given feature are shown in [].
 	
+* Parallel::Forker 1.210 2006/05/19
+
+***     Internal reorganization of modules and comments.
+
 * Parallel::Forker 1.202 2006/04/05
 
 ****	Remove Schedule::Load dependency.  [Alan Burlison]
@@ -25,7 +29,8 @@ The contributors that suggested a given feature are shown in [].
 **	First created
 
 ----------------------------------------------------------------------
-$Id: Changes 17394 2006-04-05 13:49:26Z wsnyder $
+$Id: Changes 20429 2006-05-19 13:35:31Z wsnyder $
+DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
