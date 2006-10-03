@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Forker.pm 17418 2006-04-05 15:56:24Z wsnyder $
+# $Id: Forker.pm 25923 2006-10-03 15:51:08Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2006 by Wilson Snyder.
@@ -26,7 +26,7 @@ use strict;
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.210';
+$VERSION = '1.211';
 
 ######################################################################
 #### CONSTRUCTOR

@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Process.pm 17418 2006-04-05 15:56:24Z wsnyder $
+# $Id: Process.pm 25923 2006-10-03 15:51:08Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2006 by Wilson Snyder.
@@ -26,7 +26,7 @@ use Carp;
 use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.210';
+$VERSION = '1.211';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;
@@ -308,7 +308,7 @@ sub kill_tree {
     my $self = shift;
     my $signal = shift || 9;
     return if !$self->{pid};
-    my @proc = (Parallel::Forker::_subprocesses($self->{pid}), $self->{pid});
+    my @proc = (_subprocesses($self->{pid}), $self->{pid});
     foreach my $pid (@proc) {
 	print "  Fork Kill -$signal $pid (child of $pid)\n" if $Debug;
 	CORE::kill ($signal, $pid);
