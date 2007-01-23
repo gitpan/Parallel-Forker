@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: readme.texi 17052 2006-03-30 15:30:47Z wsnyder $
+@c $Id: readme.texi 30544 2007-01-23 13:55:35Z wsnyder $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl Parallel::Forker Installation
@@ -26,7 +26,7 @@ This is the Parallel::Forker Package.
 @node Copyright, Summary, Top, Top
 @section Copyright
 
-This package is Copyright 2002-2006 by Wilson Snyder @email{wsnyder@@wsnyder.org}.
+This package is Copyright 2002-2007 by Wilson Snyder @email{wsnyder@@wsnyder.org}.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of either the GNU Lesser General Public License or

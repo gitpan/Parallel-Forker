@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: 12_rsh.t 17052 2006-03-30 15:30:47Z wsnyder $
+# $Id: 12_rsh.t 30544 2007-01-23 13:55:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2003-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2003-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License or the Perl Artistic License.
 ######################################################################
@@ -33,6 +33,7 @@ sub a_test {
     $SIG{ALRM} = sub { print "Timeout!\n"; ok(0); $fork->kill_tree_all('TERM') if $fork; die "Timeout...\n"; };
     ok(1);
 
+    warn "-Note: It's ok if you get 'No route to host' below.\n";
     for (my $i=0; $i<3; $i++) {
 	$fork->schedule(
 			run_on_start => sub {

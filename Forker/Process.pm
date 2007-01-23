@@ -1,8 +1,8 @@
 # Fork.pm -- Parallel management
-# $Id: Process.pm 25923 2006-10-03 15:51:08Z wsnyder $
+# $Id: Process.pm 30544 2007-01-23 13:55:35Z wsnyder $
 ######################################################################
 #
-# This program is Copyright 2002-2006 by Wilson Snyder.
+# This program is Copyright 2002-2007 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -26,7 +26,7 @@ use Carp;
 use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.211';
+$VERSION = '1.212';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;
@@ -509,7 +509,7 @@ succeeds OR fails.
 The latest version is available from CPAN and from
 L<http://www.veripool.com/>.
 
-Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

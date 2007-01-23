@@ -2,6 +2,11 @@ Revision history for Perl extension Parallel::Forker
 
 The contributors that suggested a given feature are shown in [].
 	
+* Parallel::Forker 1.212 2007/1/23
+
+****    Extend poll() to allow multiple processes to complete. [Darrell Bishop]
+	This means poll() has no return value; the old return was undocumented.
+
 * Parallel::Forker 1.211 2006/10/03
 
 ****    Fix kill_tree causing _subprocesses error message
@@ -33,13 +38,13 @@ The contributors that suggested a given feature are shown in [].
 **	First created
 
 ----------------------------------------------------------------------
-$Id: Changes 25923 2006-10-03 15:51:08Z wsnyder $
+$Id: Changes 30544 2007-01-23 13:55:35Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 2003-2006 by Wilson Snyder.  This program is free software;
+Copyright 2003-2007 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

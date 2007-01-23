@@ -1,8 +1,8 @@
 # Fork.pm -- Parallel management
-# $Id: Forker.pm 25923 2006-10-03 15:51:08Z wsnyder $
+# $Id: Forker.pm 30544 2007-01-23 13:55:35Z wsnyder $
 ######################################################################
 #
-# This program is Copyright 2002-2006 by Wilson Snyder.
+# This program is Copyright 2002-2007 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -26,7 +26,7 @@ use strict;
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.211';
+$VERSION = '1.212';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -115,8 +115,7 @@ sub _wait_one {
     # Poll.  Return 0 if someone still has work left, else undef.
     $self->poll();
     #print "NRUNNING ", scalar ( (keys %{$self->{_running}}) ), "\n";
-    return 0 if ( (keys %{$self->{_runable}}) > 0 );
-    return 0 if ( (keys %{$self->{_running}}) > 0 );
+    return 0 if $self->is_any_left;
     return undef;
 }
 
@@ -125,10 +124,10 @@ sub poll {
     my $nrunning = 0;
     while ($self->{_activity}) {
 	$self->{_activity} = 0;
+	$nrunning = 0;
 	foreach my $procref (values %{$self->{_running}}) {
 	    if (my $doneref = $procref->poll()) {
 		$self->{_activity} = 1;
-		return $doneref;
 	    }
 	    $nrunning++;
 	}
@@ -445,7 +444,7 @@ Print a dump of the execution tree.
 The latest version is available from CPAN and from
 L<http://www.veripool.com/>.
 
-Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

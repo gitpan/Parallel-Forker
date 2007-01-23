@@ -1,7 +1,7 @@
-# $Id: test_utils.pl 17052 2006-03-30 15:30:47Z wsnyder $
+# $Id: test_utils.pl 30544 2007-01-23 13:55:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
-# Copyright 2003-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2003-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License or the Perl Artistic License.
 ######################################################################
