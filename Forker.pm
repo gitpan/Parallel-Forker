@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Forker.pm 30544 2007-01-23 13:55:35Z wsnyder $
+# $Id: Forker.pm 30901 2007-01-26 14:16:58Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2007 by Wilson Snyder.
@@ -7,12 +7,12 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
 # Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 package Parallel::Forker;
@@ -26,7 +26,7 @@ use strict;
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.212';
+$VERSION = '1.213';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -34,7 +34,7 @@ $VERSION = '1.212';
 sub new {
     my $class = shift;
     my $self = {
-	_activity => 1,		# Optionally set true when a sig_child comes 
+	_activity => 1,		# Optionally set true when a sig_child comes
 	_processes => {},	# All process objects, keyed by id
 	_labels => {},		# List of process objects, keyed by label
 	_runable => {},		# Process objects runable now, keyed by id
@@ -87,9 +87,11 @@ sub sig_child {
 
 sub wait_all {
     my $self = shift;
-    while (defined $self->_wait_one()) {
+    while ($self->is_any_left) {
+	#print "NRUNNING ", scalar ( (keys %{$self->{_running}}) ), "\n";
+	$self->poll;
 	usleep 100*1000;
-    }
+    };
 }
 
 sub is_any_left {
@@ -110,32 +112,22 @@ sub find_proc_name {
     return undef;
 }
 
-sub _wait_one {
-    my $self = shift;
-    # Poll.  Return 0 if someone still has work left, else undef.
-    $self->poll();
-    #print "NRUNNING ", scalar ( (keys %{$self->{_running}}) ), "\n";
-    return 0 if $self->is_any_left;
-    return undef;
-}
-
 sub poll {
     my $self = shift;
-    my $nrunning = 0;
-    while ($self->{_activity}) {
-	$self->{_activity} = 0;
-	$nrunning = 0;
-	foreach my $procref (values %{$self->{_running}}) {
-	    if (my $doneref = $procref->poll()) {
-		$self->{_activity} = 1;
-	    }
-	    $nrunning++;
-	}
-	foreach my $procref (values %{$self->{_runable}}) {
-	    last if ($self->{max_proc} && $nrunning >= $self->{max_proc});
-	    $procref->run;
-	    $nrunning++;
-	}
+    return if !$self->{_activity};
+
+    # We don't have a loop around this any more, as we want to allow
+    # applications to do other work.  We'd also need to be careful not to
+    # set _activity with no one runnable, as it would potentially cause a
+    # inifinite loop.
+
+    $self->{_activity} = 0;
+    my $nrunning = grep { not $_->poll } (values %{$self->{_running}});
+
+    foreach my $procref (values %{$self->{_runable}}) {
+	last if ($self->{max_proc} && $nrunning >= $self->{max_proc});
+	$procref->run;
+	$nrunning++;
     }
     $self->{_activity} = 1 if !$nrunning;  # No one running, we need to check for >run next poll()
 }
@@ -290,8 +282,8 @@ Parallel::Forker - Parallel job forking and management
    $SIG{CHLD} = sub { Fork::sig_child($Fork); };
    $SIG{TERM} = sub { $Fork->kill_tree_all('TERM') if $Fork; die "Quitting...\n"; };
 
-   $Fork->schedule(run_on_start => sub {print "starting...";},
-		   run_on_finish => sub {print "done...";},
+   $Fork->schedule(run_on_start => sub {print "child work here...";},
+		   run_on_finish => sub {print "parent cleanup here...";},
 		   )
 	    ->run();
 
@@ -306,6 +298,11 @@ Parallel::Forker - Parallel job forking and management
    $Fork->poll();       # Service any active children
    foreach my $proc ($Fork->running()) {   # Loop on each running child
 
+   while ($self->is_any_left) {
+       $Fork->poll;
+       usleep(10*1000);
+   }
+
 =head1 DESCRIPTION
 
 Parallel::Forker manages parallel processes that are either subroutines or
@@ -314,7 +311,7 @@ little packages out there, with the addition of being able to specify
 complicated expressions to determine which processes run after others, or
 run when others fail.
 
-Function names loosely based on Parallel::ForkManager.
+Function names are loosely based on Parallel::ForkManager.
 
 The unique property of Parallel::Forker is the ability to schedule
 processes based on expressions that are specified when the processes are
@@ -322,8 +319,8 @@ defined. For example:
 
    my $p1 = $Fork->schedule(..., label=>'p1');
    my $p2 = $Fork->schedule(..., label=>'p2');
-   my $p3 = $Fork->schedule(..., run_after => "p1 | p2");
-   my $p4 = $Fork->schedule(..., run_after => "p1 & !p2");
+   my $p3 = $Fork->schedule(..., run_after => ["p1 | p2"]);
+   my $p4 = $Fork->schedule(..., run_after => ["p1 & !p2"]);
 
 Process p3 is specified to run after process p1 *or* p2 have completed
 successfully.  Process p4 will run after p1 finishes successfully, and
@@ -337,8 +334,9 @@ For more examples, see the tests.
 
 =item $self->find_proc_name (<name>)
 
-Return a Parallel::Forker::Process objects for the given named process, or
-undef if not found.
+Returns one or more Parallel::Forker::Process objects for the given name (one
+object returned) or label (one or more objects returned).  Returns undef if no
+processes are found.
 
 =item $self->is_any_left
 
@@ -346,11 +344,11 @@ Return true if any processes are running, or runnable (need to run).
 
 =item $self->kill_all (<signal>)
 
-Send a kill to all running children.
+Send a signal to all running children.
 
 =item $self->kill_tree_all (<signal>)
 
-Send a kill to all running children and their subchildren.
+Send a signal to all running children and their subchildren.
 
 =item $self->max_proc
 
@@ -360,7 +358,8 @@ to undef, which runs all possible jobs at once.
 =item $self->new (<parameters>)
 
 Create a new manager object.  There may be more then one manager in any
-application.
+application, but each manager's sig_child method should be called in the
+application's SIGCHLD handler.
 
 =item $self->poll
 
@@ -373,7 +372,7 @@ Return Parallel::Forker::Process objects for all processes.
 
 =item $self->processes_sorted
 
-Return Parallel::Forker::Process objects for all processes, in name sorted order.
+Return Parallel::Forker::Process objects for all processes, sorted by name.
 
 =item $self->ready_all
 
@@ -399,8 +398,9 @@ label.
 
 =item name
 
-Optional name to use in run_after commands.  Note names MUST be unique!
-When not specified, a unique number will be assigned automatically.
+Optional name to use in run_after commands.  Note that names MUST be
+unique!  When not specified, a unique number will be assigned
+automatically.
 
 =item run_on_start
 
@@ -417,7 +417,7 @@ process.
 A list reference of processes that must be completed before this process
 can be runnable.  You may pass a process object (from schedule), a process
 name, or a process label.  You may use "|" or "&" in a string to run this
-process after a OR of any processes exit, or after ALL exit (the default.)
+process after ANY processes exit, or after ALL exit (the default.)
 ! in front of a process name indicates to run if that process fails with
 bad exit status.  ^ in front of a process indicates to run if that process
 succeeds OR fails.
@@ -431,9 +431,9 @@ multiple Parallel::Forker's each of their sig_child's must be called.
 
 =item $self->wait_all
 
-Wait for all running jobs to complete.
+Wait until there are no running or runable jobs left.
 
-=item $self->write_tree (filename=><filename>)
+=item $self->write_tree (filename => <filename>)
 
 Print a dump of the execution tree.
 
