@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Process.pm 30901 2007-01-26 14:16:58Z wsnyder $
+# $Id: Process.pm 31190 2007-02-01 15:00:36Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2007 by Wilson Snyder.
@@ -26,7 +26,7 @@ use Carp;
 use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.213';
+$VERSION = '1.214';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;

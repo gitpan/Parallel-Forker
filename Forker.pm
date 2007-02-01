@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Forker.pm 30901 2007-01-26 14:16:58Z wsnyder $
+# $Id: Forker.pm 31190 2007-02-01 15:00:36Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2007 by Wilson Snyder.
@@ -26,7 +26,7 @@ use strict;
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.213';
+$VERSION = '1.214';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -114,7 +114,9 @@ sub find_proc_name {
 
 sub poll {
     my $self = shift;
-    return if !$self->{_activity};
+    # For backward compatibilty, we allow poll to check for processes exit,
+    # without requiring calls to sig_child.
+    #return if !$self->{_activity};
 
     # We don't have a loop around this any more, as we want to allow
     # applications to do other work.  We'd also need to be careful not to
