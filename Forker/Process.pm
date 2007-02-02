@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Process.pm 31190 2007-02-01 15:00:36Z wsnyder $
+# $Id: Process.pm 31366 2007-02-02 21:14:32Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2007 by Wilson Snyder.
@@ -26,7 +26,7 @@ use Carp;
 use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.214';
+$VERSION = '1.220';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;
@@ -479,7 +479,7 @@ Return the process ID if this job is running, else undef.
 =item poll
 
 Check the process for activity, invoking callbacks if needed.
-Generally Parallel::Forker's object method poll() is used instead.
+Generally Parallel::Forker's object method C<poll()> is used instead.
 
 =item ready
 
