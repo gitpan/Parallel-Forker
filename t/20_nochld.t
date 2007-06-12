@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 20_nochld.t 31189 2007-02-01 14:59:35Z wsnyder $
+# $Id: 20_nochld.t 37551 2007-04-27 12:24:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2007-2007 by Wilson Snyder.  This program is free software;
@@ -22,7 +22,7 @@ ok(1);
 
 ######################################################################
 
-my $fork = new Parallel::Forker;
+my $fork = new Parallel::Forker (use_sig_child=>0);
 ok(1);
 
 # Not required in old versions, so make sure we still work

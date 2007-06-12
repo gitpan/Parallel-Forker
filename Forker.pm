@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Forker.pm 31366 2007-02-02 21:14:32Z wsnyder $
+# $Id: Forker.pm 40306 2007-06-12 19:48:00Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2007 by Wilson Snyder.
@@ -26,7 +26,7 @@ use strict;
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.220';
+$VERSION = '1.221';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -42,7 +42,7 @@ sub new {
 	_in_child => 0,		# In a child process, don't allow forking
 	_run_after_eqn => undef,# Equation to eval to determine if ready to launch
 	max_proc => undef,	# Number processes to launch, <1=any, +=that number
-	use_sig_child => 0,	# Default to not using SIGCHLD handler
+	use_sig_child => undef,	# Default to not using SIGCHLD handler
 	@_
     };
     bless $self, ref($class)||$class;
@@ -119,9 +119,17 @@ sub find_proc_name {
     return undef;
 }
 
+our $_Warned_Use_Sig_Child;
+
 sub poll {
     my $self = shift;
     return if $self->use_sig_child && !$self->{_activity};
+    if (!defined $self->use_sig_child) {
+	carp "%Warning: Forker object should be new'ed with use_sig_child=>0 or 1, "
+	    if ($^W && !$_Warned_Use_Sig_Child);
+	$_Warned_Use_Sig_Child = 1;
+	$self->use_sig_child(0);
+    }
 
     # We don't have a loop around this any more, as we want to allow
     # applications to do other work.  We'd also need to be careful not to
@@ -277,6 +285,7 @@ sub max {
     return $rtn;
 }
 
+1;
 ######################################################################
 =pod
 
@@ -287,15 +296,15 @@ Parallel::Forker - Parallel job forking and management
 =head1 SYNOPSIS
 
    use Parallel::Forker;
-   $Fork = new Parallel::Forker;
-   $SIG{CHLD} = sub { Fork::sig_child($Fork); };
-   $Fork->use_sig_child(1);
+   $Fork = new Parallel::Forker (use_sig_child=>1);
+   $SIG{CHLD} = sub { Parallel::Forker::sig_child($Fork); };
    $SIG{TERM} = sub { $Fork->kill_tree_all('TERM') if $Fork; die "Quitting...\n"; };
 
-   $Fork->schedule(run_on_start => sub {print "child work here...";},
-		   run_on_finish => sub {print "parent cleanup here...";},
-		   )
-	    ->run();
+   $Fork->schedule
+      (run_on_start => sub {print "child work here...";},
+       # run_on_start => \&child_subroutine,  # Alternative: call a named sub.
+       run_on_finish => sub {print "parent cleanup here...";},
+       )->run();
 
    $Fork->wait_all();   # Wait for all children to finish
 
@@ -308,7 +317,7 @@ Parallel::Forker - Parallel job forking and management
    $Fork->poll();       # Service any active children
    foreach my $proc ($Fork->running()) {   # Loop on each running child
 
-   while ($self->is_any_left) {
+   while ($Fork->is_any_left) {
        $Fork->poll;
        usleep(10*1000);
    }
@@ -360,10 +369,13 @@ Send a signal to all running children.
 
 Send a signal to all running children and their subchildren.
 
-=item $self->max_proc
+=item $self->max_proc (<number>)
 
-Specify the maximum number of processes to run at any one time.  Defaults
-to undef, which runs all possible jobs at once.
+Specify the maximum number of processes that the poll method will run at
+any one time.  Defaults to undef, which runs all possible jobs at once.
+Max_proc takes effect when you schedule processes and mark them "ready,"
+then rely on Parallel::Forker's poll method to move the processes from the
+ready state to the run state.  (You do not need to call run yourself.)
 
 =item $self->new (<parameters>)
 
@@ -372,10 +384,26 @@ application, but applications taking advantage of the sig_child handler
 should call every manager's C<sig_child> method in the application's
 C<SIGCHLD> handler.
 
+Parameters are passed by name as follows:
+
+=over 4
+
+=item max_proc => (<number>)
+
+See the C<max_proc> object method.
+
+=item use_sig_child => ( 0 | 1 )
+
+See the C<use_sig_child> object method.  This option must be specified to
+prevent a warning.
+
+=back
+
 =item $self->poll
 
-See if any children need work, and service them.  Non-blocking; always
-returns immediately.
+See if any children need work, and service them.  Start up to max_proc
+processes that are "ready" by calling their run method.  Non-blocking;
+always returns immediately.
 
 =item $self->processes
 
@@ -416,13 +444,17 @@ automatically.
 
 =item run_on_start
 
-Subroutine reference to execute when the job begins.  Executes under the
-forked process.
+Subroutine reference to execute when the job begins, in the forked process.
+The subroutine is called with one argument, a reference to the
+Parallel::Forker::Process that is starting.
 
 =item run_on_finish
 
-Subroutine reference to execute when the job ends.  Executes on the master
-process.
+Subroutine reference to execute when the job ends, in the master process.
+The subroutine is called with two arguments, a reference to the
+Parallel::Forker::Process that is finishing, and the exit status of the
+child process.  Note the exit status will only be correct if a CHLD signal
+handler is installed.
 
 =item run_after
 
@@ -445,10 +477,12 @@ in the C<$SIG{CHLD}> handler.
 
 =item $self->use_sig_child ( 0 | 1 )
 
-If you install a C<$SIG{CHLD}> handler which calls your Parallel::Forker
-object's C<sig_child> method, you should also turn on C<use_sig_child>, by
-calling it with a "true" argument.  Then, calls to C<poll()> will do less work
-when there are no children processes to be reaped.
+This should always be called with a 0 or 1.  If you install a C<$SIG{CHLD}>
+handler which calls your Parallel::Forker object's C<sig_child> method, you
+should also turn on C<use_sig_child>, by calling it with a "true" argument.
+Then, calls to C<poll()> will do less work when there are no children
+processes to be reaped.  If not using the handler call with 0 to prevent a
+warning.
 
 =item $self->wait_all
 

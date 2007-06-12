@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 11_dashes.t 30897 2007-01-26 13:42:38Z wsnyder $
+# $Id: 11_dashes.t 37551 2007-04-27 12:24:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2003-2007 by Wilson Snyder.  This program is free software;
@@ -29,7 +29,7 @@ sub didit { $Didit{$_[0]->name} = 1 }
 sub a_test {
     my $failit = shift;
 
-    my $fork = new Parallel::Forker;
+    my $fork = new Parallel::Forker (use_sig_child=>1);
     $SIG{CHLD} = sub { Parallel::Forker::sig_child($fork); };
     $SIG{TERM} = sub { $fork->kill_tree_all('TERM') if $fork; die "Quitting...\n"; };
     ok(1);
@@ -143,7 +143,7 @@ sub a_test {
 #        |
 #        f
 {
-  my $fork = new Parallel::Forker;
+  my $fork = new Parallel::Forker (use_sig_child=>1);
   $SIG{CHLD} = sub { Parallel::Forker::sig_child($fork); };
   $SIG{TERM} = sub { $fork->kill_tree_all('TERM') if $fork; die "Quitting...\n"; };
 

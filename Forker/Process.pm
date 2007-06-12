@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Process.pm 31366 2007-02-02 21:14:32Z wsnyder $
+# $Id: Process.pm 40306 2007-06-12 19:48:00Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2007 by Wilson Snyder.
@@ -26,7 +26,7 @@ use Carp;
 use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.220';
+$VERSION = '1.221';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;
@@ -48,6 +48,11 @@ sub _new {
     };
     $Debug = $Parallel::Forker::Debug;
     bless $self, ref($class)||$class;
+    # Users need to delete the old one first, if they care.
+    # We don't do that automatically, as generally this is a mistake, and
+    # deleting the old one may terminate a process or have other nasty effects.
+    (!exists $self->{_forkref}{_processes}{$self->{name}})
+	or croak "%Error: Creating a new process under the same name as an existing process: $self->{name},";
     $self->{_forkref}{_processes}{$self->{name}} = $self;
     if (defined $self->{label}) {
 	if (ref $self->{label}) {
@@ -72,6 +77,8 @@ sub DESTROY {
 sub name { return $_[0]->{name}; }
 sub label { return $_[0]->{label}; }
 sub pid { return $_[0]->{pid}; }
+sub status { return $_[0]->{status}; }   # Maybe undef
+sub status_ok { return defined $_[0]->{status} && $_[0]->{status}==0; }
 sub forkref { return $_[0]->{_forkref}; }
 sub is_idle    { return $_[0]->{_state} eq 'idle'; }
 sub is_ready   { return $_[0]->{_state} eq 'ready'; }
@@ -248,12 +255,12 @@ sub _calc_runable {
     sub _ranok {
 	my $procref = $_Calc_Runable_Fork->{_processes}{$_[0]};
 	print "   _ranok   $procref->{name}  State $procref->{_state}\n" if ($Debug||0)>=2;
-	return ($procref->is_done && $procref->{status}==0);
+	return ($procref->is_done && $procref->status_ok);
     }
     sub _ranfail {
 	my $procref = $_Calc_Runable_Fork->{_processes}{$_[0]};
 	print "   _ranfail $procref->{name}  State $procref->{_state}\n" if ($Debug||0)>=2;
-	return ($procref->is_done && $procref->{status}!=0);
+	return ($procref->is_done && !$procref->status_ok);
     }
     sub _parerr {
 	my $procref = $_Calc_Runable_Fork->{_processes}{$_[0]};
@@ -273,13 +280,22 @@ sub _calc_runable {
 
 ##### STATE TRANSITIONS
 
+our $_Warned_Waitpid;
+
 sub poll {
     my $self = shift;
     return undef if !$self->{pid};
 
     my $got = waitpid ($self->{pid}, WNOHANG);
-    if ($got>0) {
-	$self->{status} = $?;	# convert wait return to status 
+    if ($got!=0) {
+	if ($got>0) {
+	    $self->{status} = $?;	# convert wait return to status 
+	} else {
+	    $self->{status} = undef;
+	    carp "%Warning: waitpid($self->{pid}) returned -1 instead of status; perhaps you're ignoring SIG{CHLD}?"
+		if ($^W && !$_Warned_Waitpid);
+	    $_Warned_Waitpid = 1;
+	}
 	# Transition: running -> 'done'
 	print "  FrkProc $self->{name} $self->{_state} -> done ($self->{status})\n" if $Debug;
 	delete $self->{_forkref}{_running}{$self->{pid}};
@@ -334,8 +350,8 @@ sub _write_tree_line {
     my $cmt = "";
     if (!$linenum) {
 	my $state = uc $self->{_state};
-	$state .= "-ok"  if $self->is_done && !$self->{status};
-	$state .= "-err" if $self->is_done && $self->{status};
+	$state .= "-ok"  if $self->is_done && $self->status_ok;
+	$state .= "-err" if $self->is_done && !$self->status_ok;
 	return sprintf ("%s %-27s  %-8s  %s\n",
 			"--", #x$level
 			$self->{name},
@@ -411,11 +427,12 @@ method, and retrieved by various methods in that class.
 
 Processes transition over 6 states.  They begin in idle state, and are
 transitioned by the user into ready state.  As their dependencies complete,
-Parallel::Forker transitions them to the runable state.  As the max_proc
-limit permits, they transition to the running state, and get executed.  On
-completion, they transition to the done state.  If a process depends on
-another process, and that other process fails, it transitions to the parerr
-(parent error) state, and is never run.
+Parallel::Forker transitions them to the runable state.  As the
+Parallel::Forker object's C<max_proc> limit permits, they transition to the
+running state, and get executed.  On completion, they transition to the
+done state.  If a process depends on another process, and that other
+process fails, the dependant process transitions to the parerr (parent
+error) state, and is never run.
 
 =head1 METHODS
 
@@ -483,7 +500,7 @@ Generally Parallel::Forker's object method C<poll()> is used instead.
 
 =item ready
 
-Mark this process as being ready for execution when all run_after's are
+Mark this process as being ready for execution when all C<run_after>'s are
 ready and CPU resources permit.  When that occurs, run will be called on
 the process automatically.
 
@@ -500,6 +517,18 @@ process after ANY processes exit, or after ALL exit (the default.)
 ! in front of a process name indicates to run if that process fails with
 bad exit status.  ^ in front of a process indicates to run if that process
 succeeds OR fails.
+
+=item status
+
+Return the exit status of this process if it has completed.  The exit
+status will only be correct if a CHLD signal handler is installed,
+otherwise it may be undef.
+
+=item status_ok
+
+Return true if the exit status of this process was zero.  Return false if
+not ok, or if the status has not been determined, or if the status was
+undef.
 
 =back
 

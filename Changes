@@ -2,6 +2,16 @@ Revision history for Perl extension Parallel::Forker
 
 The contributors that suggested a given feature are shown in [].
 	
+* Parallel::Forker 1.221 2007/6/12
+
+***	Warn, but allow users to set SIG{CHLD}='IGNORE'. [Kevin Montuori]
+
+****    Warn if use_sig_child is undefined, as need to know if on or off.
+
+****	Report error if create or schedule a task, and the same name exists.
+
+****	Documentation cleanups. [Bryce Denney]
+
 * Parallel::Forker 1.220 2007/2/2
 
 ****	Add use_sig_child method, and accelerate poll.  [Darrell Bishop]
@@ -53,7 +63,7 @@ The contributors that suggested a given feature are shown in [].
 **	First created
 
 ----------------------------------------------------------------------
-$Id: Changes 31365 2007-02-02 21:13:24Z wsnyder $
+$Id: Changes 40306 2007-06-12 19:48:00Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 

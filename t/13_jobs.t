@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 13_jobs.t 30544 2007-01-23 13:55:35Z wsnyder $
+# $Id: 13_jobs.t 37551 2007-04-27 12:24:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2003-2007 by Wilson Snyder.  This program is free software;
@@ -23,7 +23,7 @@ ok(1);
 a_test();
 
 sub a_test {
-    my $fork = new Parallel::Forker ();
+    my $fork = new Parallel::Forker (use_sig_child=>1);
     $fork->max_proc(3);
 
     $SIG{CHLD} = sub { Parallel::Forker::sig_child($fork); };
