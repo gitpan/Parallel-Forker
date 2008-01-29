@@ -1,7 +1,7 @@
-# $Id: Makefile.PL 30544 2007-01-23 13:55:35Z wsnyder $
+# $Id: Makefile.PL 50266 2008-01-29 19:36:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 2003-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2003-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License or the Perl Artistic License.
 ######################################################################
@@ -18,6 +18,7 @@ README: readme.texi
 
 preexist:
 	test ! -r \$(HOME)/src/kits/\$(DISTVNAME).tar.gz
+	test -s README
 
 tag:
 	svnorcvs tag  \$(DISTNAME)_\$(VERSION_SYM)
@@ -40,7 +41,7 @@ clean::
 }
 
 WriteMakefile(
-	      VERSION_FROM => 'Forker.pm',
+	      VERSION_FROM => 'lib/Parallel/Forker.pm',
 	      DISTNAME  => 'Parallel-Forker',
 	      NAME      => 'Parallel::Forker',
 	      AUTHOR	=> 'Wilson Snyder <wsnyder@wsnyder.org>',

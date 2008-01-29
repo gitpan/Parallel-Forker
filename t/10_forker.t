@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: 10_forker.t 31365 2007-02-02 21:13:24Z wsnyder $
+# $Id: 10_forker.t 50266 2008-01-29 19:36:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2003-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2003-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License or the Perl Artistic License.
 ######################################################################

@@ -1,8 +1,8 @@
 # Fork.pm -- Parallel management
-# $Id: Forker.pm 40306 2007-06-12 19:48:00Z wsnyder $
+# $Id: Forker.pm 50266 2008-01-29 19:36:35Z wsnyder $
 ######################################################################
 #
-# This program is Copyright 2002-2007 by Wilson Snyder.
+# This program is Copyright 2002-2008 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -26,7 +26,7 @@ use strict;
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.221';
+$VERSION = '1.222';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -66,6 +66,11 @@ sub use_sig_child {
 sub running {
     my $self = shift;
     return (values %{$self->{_running}});
+}
+
+sub running_sorted {
+    my $self = shift;
+    return (sort {$a->{name} cmp $b->{name}} values %{$self->{_running}});
 }
 
 sub processes {
@@ -134,15 +139,18 @@ sub poll {
     # We don't have a loop around this any more, as we want to allow
     # applications to do other work.  We'd also need to be careful not to
     # set _activity with no one runnable, as it would potentially cause a
-    # inifinite loop.
+    # infinite loop.
 
     $self->{_activity} = 0;
     my $nrunning = grep { not $_->poll } (values %{$self->{_running}});
 
-    foreach my $procref (values %{$self->{_runable}}) {
-	last if ($self->{max_proc} && $nrunning >= $self->{max_proc});
-	$procref->run;
-	$nrunning++;
+    if (!($self->{max_proc} && $nrunning >= $self->{max_proc})) {
+	foreach my $procref (sort {$a->{name} cmp $b->{name}}   # Lanch in named order
+			     values %{$self->{_runable}}) {
+	    last if ($self->{max_proc} && $nrunning >= $self->{max_proc});
+	    $procref->run;
+	    $nrunning++;
+	}
     }
     # If no one's running, we need _activity set to check for runable -> running
     # transitions during the next call to poll().
@@ -159,7 +167,7 @@ sub ready_all {
 sub kill_all {
     my $self = shift;
     my $signal = shift || 9;
-    foreach my $procref (values %{$self->{_running}}) {
+    foreach my $procref ($self->running_sorted) {
 	$procref->kill($signal);
     };
 }
@@ -167,7 +175,7 @@ sub kill_all {
 sub kill_tree_all {
     my $self = shift;
     my $signal = shift || 9;
-    foreach my $procref (values %{$self->{_running}}) {
+    foreach my $procref ($self->running_sorted) {
 	$procref->kill_tree($signal);
     };
 }
@@ -379,7 +387,7 @@ ready state to the run state.  (You do not need to call run yourself.)
 
 =item $self->new (<parameters>)
 
-Create a new manager object.  There may be more then one manager in any
+Create a new manager object.  There may be more than one manager in any
 application, but applications taking advantage of the sig_child handler
 should call every manager's C<sig_child> method in the application's
 C<SIGCHLD> handler.
@@ -448,6 +456,14 @@ Subroutine reference to execute when the job begins, in the forked process.
 The subroutine is called with one argument, a reference to the
 Parallel::Forker::Process that is starting.
 
+If your callback is going to fork, you'd be advised to have the child:
+
+	$SIG{ALRM} = 'DEFAULT';
+	$SIG{CHLD} = 'DEFAULT';
+
+This will prevent the child from inheriting the parent's handlers, and
+possibly confusing any child calls to waitpid.
+
 =item run_on_finish
 
 Subroutine reference to execute when the job ends, in the master process.
@@ -499,7 +515,7 @@ Print a dump of the execution tree.
 The latest version is available from CPAN and from
 L<http://www.veripool.com/>.
 
-Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

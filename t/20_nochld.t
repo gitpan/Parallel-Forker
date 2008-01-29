@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: 20_nochld.t 37551 2007-04-27 12:24:35Z wsnyder $
+# $Id: 20_nochld.t 50266 2008-01-29 19:36:35Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2007-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2007-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License or the Perl Artistic License.
 ######################################################################

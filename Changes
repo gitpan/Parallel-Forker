@@ -2,6 +2,12 @@ Revision history for Perl extension Parallel::Forker
 
 The contributors that suggested a given feature are shown in [].
 	
+* Parallel::Forker 1.222 2008/1/29
+
+***	Run processes in sorted rather than hash order. [Bryce Denney]
+
+****	Reorganize kit to use lib directory, for easier standalone use.
+
 * Parallel::Forker 1.221 2007/6/12
 
 ***	Warn, but allow users to set SIG{CHLD}='IGNORE'. [Kevin Montuori]
@@ -63,13 +69,13 @@ The contributors that suggested a given feature are shown in [].
 **	First created
 
 ----------------------------------------------------------------------
-$Id: Changes 40306 2007-06-12 19:48:00Z wsnyder $
+$Id: Changes 50266 2008-01-29 19:36:35Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 2003-2007 by Wilson Snyder.  This program is free software;
+Copyright 2003-2008 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
