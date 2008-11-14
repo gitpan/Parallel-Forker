@@ -1,5 +1,5 @@
 # Fork.pm -- Parallel management
-# $Id: Process.pm 50266 2008-01-29 19:36:35Z wsnyder $
+# $Id: Process.pm 64733 2008-11-14 19:52:59Z wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002-2008 by Wilson Snyder.
@@ -7,12 +7,12 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
 # Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 package Parallel::Forker::Process;
@@ -26,7 +26,7 @@ use Carp;
 use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.222';
+$VERSION = '1.223';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;
@@ -227,7 +227,6 @@ sub run {
 	$self->{_forkref}{_running}{$self->{pid}} = $self;
 	delete $self->{_forkref}{_runable}{$self->{name}};
     } else {
-	$self->{_forkref}{_in_child} = 1;
 	$self->{run_on_start}->($self);
 	exit(0);	# Don't close anything
     }
@@ -289,7 +288,7 @@ sub poll {
     my $got = waitpid ($self->{pid}, WNOHANG);
     if ($got!=0) {
 	if ($got>0) {
-	    $self->{status} = $?;	# convert wait return to status 
+	    $self->{status} = $?;	# convert wait return to status
 	} else {
 	    $self->{status} = undef;
 	    carp "%Warning: waitpid($self->{pid}) returned -1 instead of status; perhaps you're ignoring SIG{CHLD}?"
@@ -385,7 +384,7 @@ sub _subprocesses {
     # All pids under the given parent
     # Used by testing module
     # Same function in Schedule::Load::_subprocesses
-    my $pt = new Proc::ProcessTable( 'cache_ttys' => 1); 
+    my $pt = new Proc::ProcessTable( 'cache_ttys' => 1);
     my %parent_pids;
     foreach my $p (@{$pt->table}) {
 	$parent_pids{$p->pid} = $p->ppid;
@@ -504,7 +503,7 @@ Mark this process as being ready for execution when all C<run_after>'s are
 ready and CPU resources permit.  When that occurs, run will be called on
 the process automatically.
 
-=item run 
+=item run
 
 Unconditionally move the process to the "running" state and start it.
 
@@ -535,7 +534,7 @@ undef.
 =head1 DISTRIBUTION
 
 The latest version is available from CPAN and from
-L<http://www.veripool.com/>.
+L<http://www.veripool.org/>.
 
 Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

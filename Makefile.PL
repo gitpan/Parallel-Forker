@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 50266 2008-01-29 19:36:35Z wsnyder $
+# $Id: Makefile.PL 55774 2008-06-12 14:15:21Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
 # Copyright 2003-2008 by Wilson Snyder.  This program is free software;
@@ -17,18 +17,17 @@ README: readme.texi
 	makeinfo \$< --output \$@ --no-headers --no-validate
 
 preexist:
-	test ! -r \$(HOME)/src/kits/\$(DISTVNAME).tar.gz
+	svnorcvs nexists \$(DISTNAME)_\$(VERSION_SYM)
 	test -s README
 
 tag:
 	svnorcvs tag  \$(DISTNAME)_\$(VERSION_SYM)
 
 maintainer-diff:
-	svnorcvs diff \$(DISTNAME)_\$(VERSION_SYM) 
+	svnorcvs diff \$(DISTNAME)_\$(VERSION_SYM)
 
 maintainer-dist: preexist dist tag
-	cp \$(DISTVNAME).tar.gz \$(HOME)/src/kits
-	mv \$(DISTVNAME).tar.gz \$(HOME)/backpack
+	svnorcvs release \$(DISTVNAME).tar.gz
 
 maintainer-clean: distclean
 	-rm -rf README vtrace
@@ -50,7 +49,7 @@ WriteMakefile(
 			    'Proc::ProcessTable' => 0.40,
 			},
 	      'dist'    => {COMPRESS => 'gzip -9f',
-			    SUFFIX   => '.gz', 
+			    SUFFIX   => '.gz',
 			    DIST_DEFAULT => 'README all tardist',
 			},
 	      );

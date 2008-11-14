@@ -1,4 +1,4 @@
-# $Id: test_utils.pl 50266 2008-01-29 19:36:35Z wsnyder $
+# $Id: test_utils.pl 55774 2008-06-12 14:15:21Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
 # Copyright 2003-2008 by Wilson Snyder.  This program is free software;
@@ -6,6 +6,7 @@
 # Lesser General Public License or the Perl Artistic License.
 ######################################################################
 
+use IO::File;
 use vars qw($PERL $GCC);
 
 $PERL = "$^X -Iblib/arch -Iblib/lib";
@@ -26,6 +27,14 @@ sub run_system {
     system "$command";
     my $status = $?;
     ($status == 0) or die "%Error: Command Failed $command, $status, stopped";
+}
+
+sub wholefile {
+    my $file = shift;
+    my $fh = IO::File->new ($file) or die "%Error: $! $file";
+    my $wholefile = join('',$fh->getlines());
+    $fh->close();
+    return $wholefile;
 }
 
 1;

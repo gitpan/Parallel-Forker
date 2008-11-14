@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 12_rsh.t 50266 2008-01-29 19:36:35Z wsnyder $
+# $Id: 12_rsh.t 64613 2008-11-13 14:55:57Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2003-2008 by Wilson Snyder.  This program is free software;
@@ -29,8 +29,8 @@ sub a_test {
 
     my $fork = new Parallel::Forker (use_sig_child=>1);
     $SIG{CHLD} = sub { Parallel::Forker::sig_child($fork); };
-    $SIG{TERM} = sub { ok(0); $fork->kill_tree_all('TERM') if $fork; die "Quitting...\n"; };
-    $SIG{ALRM} = sub { print "Timeout!\n"; ok(0); $fork->kill_tree_all('TERM') if $fork; die "Timeout...\n"; };
+    $SIG{TERM} = sub { ok(0); $fork->kill_tree_all('TERM') if $fork && $fork->in_parent; die "Quitting...\n"; };
+    $SIG{ALRM} = sub { print "Timeout!\n"; ok(0); $fork->kill_tree_all('TERM') if $fork && $fork->in_parent; die "Timeout...\n"; };
     ok(1);
 
     warn "-Note: It's ok if you get 'No route to host' below.\n";

@@ -1,7 +1,11 @@
 Revision history for Perl extension Parallel::Forker
 
 The contributors that suggested a given feature are shown in [].
-	
+
+* Parallel::Forker 1.223 2008/11/14
+
+***	Add in_parent method and recommend usage, rt40886. [Ton Voon]
+
 * Parallel::Forker 1.222 2008/1/29
 
 ***	Run processes in sorted rather than hash order. [Bryce Denney]
@@ -69,7 +73,7 @@ The contributors that suggested a given feature are shown in [].
 **	First created
 
 ----------------------------------------------------------------------
-$Id: Changes 50266 2008-01-29 19:36:35Z wsnyder $
+$Id: Changes 64733 2008-11-14 19:52:59Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 
