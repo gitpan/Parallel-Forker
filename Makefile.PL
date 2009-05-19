@@ -1,9 +1,8 @@
-# $Id: Makefile.PL 55774 2008-06-12 14:15:21Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 2003-2008 by Wilson Snyder.  This program is free software;
+# Copyright 2003-2009 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
-# Lesser General Public License or the Perl Artistic License.
+# Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 ######################################################################
 
 require 5.005;
@@ -11,32 +10,32 @@ use ExtUtils::MakeMaker;
 use Carp;
 
 sub MY::postamble {
-"
+    q{
 README: readme.texi
-	-rm -rf \$@
-	makeinfo \$< --output \$@ --no-headers --no-validate
+	-$(RM_RF) $@
+	makeinfo $< --output $@ --no-headers --no-validate
 
 preexist:
-	svnorcvs nexists \$(DISTNAME)_\$(VERSION_SYM)
+	svnorcvs nexists $(DISTNAME)_$(VERSION_SYM)
 	test -s README
 
 tag:
-	svnorcvs tag  \$(DISTNAME)_\$(VERSION_SYM)
+	svnorcvs tag  $(DISTNAME)_$(VERSION_SYM)
 
 maintainer-diff:
-	svnorcvs diff \$(DISTNAME)_\$(VERSION_SYM)
+	svnorcvs diff $(DISTNAME)_$(VERSION_SYM)
 
 maintainer-dist: preexist dist tag
-	svnorcvs release \$(DISTVNAME).tar.gz
+	svnorcvs release $(DISTVNAME).tar.gz
 
 maintainer-clean: distclean
-	-rm -rf README vtrace
+	-$(RM_RF) README vtrace
 
 maintainer-copy: README
 
 clean::
-	-rm -rf test_dir
-";
+	-$(RM_RF) test_dir
+};
 }
 
 WriteMakefile(

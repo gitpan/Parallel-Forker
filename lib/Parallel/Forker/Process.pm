@@ -1,18 +1,4 @@
-# Fork.pm -- Parallel management
-# $Id: Process.pm 64733 2008-11-14 19:52:59Z wsnyder $
-######################################################################
-#
-# This program is Copyright 2002-2008 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
+# See copyright, etc in below POD section.
 ######################################################################
 
 package Parallel::Forker::Process;
@@ -26,7 +12,7 @@ use Carp;
 use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.223';
+$VERSION = '1.224';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;
@@ -536,9 +522,10 @@ undef.
 The latest version is available from CPAN and from
 L<http://www.veripool.org/>.
 
-Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
-Lesser General Public License or the Perl Artistic License.
+Lesser General Public License Version 3 or the Perl Artistic License
+Version 2.0.
 
 =head1 AUTHORS
 

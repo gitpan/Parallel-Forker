@@ -1,12 +1,15 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Parallel-Forker
-version:      1.223
-version_from: lib/Parallel/Forker.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                Parallel-Forker
+version:             1.224
+abstract:            Parallel job forking and management, with expression based control
+license:             ~
+author:              
+    - Wilson Snyder <wsnyder@wsnyder.org>
+generated_by:        ExtUtils::MakeMaker version 6.44
+distribution_type:   module
+requires:     
     Proc::ProcessTable:            0.4
     Time::HiRes:                   0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3
