@@ -11,7 +11,7 @@ use strict;
 use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.224';
+$VERSION = '1.225';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -380,7 +380,8 @@ Specify the maximum number of processes that the poll method will run at
 any one time.  Defaults to undef, which runs all possible jobs at once.
 Max_proc takes effect when you schedule processes and mark them "ready,"
 then rely on Parallel::Forker's poll method to move the processes from the
-ready state to the run state.  (You do not need to call run yourself.)
+ready state to the run state.  (You should not call ->run yourself, as this
+starts a new process immediately, ignoring max_proc.)
 
 =item $self->new (<parameters>)
 
@@ -512,7 +513,7 @@ Print a dump of the execution tree.
 The latest version is available from CPAN and from
 L<http://www.veripool.org/>.
 
-Copyright 2002-2009 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2010 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License Version 3 or the Perl Artistic License
 Version 2.0.
