@@ -3,16 +3,16 @@
 
 package Parallel::Forker::Process;
 require 5.006;
-use Time::HiRes qw (usleep);
-use Proc::ProcessTable;
+use Carp qw(carp croak confess);
 use IO::File;
+use POSIX qw(sys_wait_h :signal_h);
+use Proc::ProcessTable;
+use Scalar::Util qw(weaken);
 
 use strict;
-use Carp;
-use POSIX qw(sys_wait_h :signal_h);
 use vars qw($Debug $VERSION $HashId);
 
-$VERSION = '1.225';
+$VERSION = '1.230';
 
 $Debug = $Parallel::Forker::Debug;
 $HashId = 0;
@@ -26,6 +26,7 @@ sub _new {
 	_after_children => {},	# IDs that are waiting on this event
 	_after_parents => {},	# IDs that we need to wait for
 	_state => 'idle',	# 'idle', 'ready', 'runable', 'running', 'done', 'parerr'
+	_ref_count => 0,        # number of people depending on us
 	pid => undef,		# Pid # running as, undef=not running
 	run_after => [],	# Process objects that are prereqs
 	run_on_start => sub {confess "%Error: No run_on_start defined\n";},
@@ -40,6 +41,8 @@ sub _new {
     (!exists $self->{_forkref}{_processes}{$self->{name}})
 	or croak "%Error: Creating a new process under the same name as an existing process: $self->{name},";
     $self->{_forkref}{_processes}{$self->{name}} = $self;
+    weaken($self->{_forkref});
+
     if (defined $self->{label}) {
 	if (ref $self->{label}) {
 	    foreach my $label (@{$self->{label}}) {
@@ -72,6 +75,13 @@ sub is_runable { return $_[0]->{_state} eq 'runable'; }
 sub is_running { return $_[0]->{_state} eq 'running'; }
 sub is_done    { return $_[0]->{_state} eq 'done'; }
 sub is_parerr  { return $_[0]->{_state} eq 'parerr'; }
+sub is_reapable {
+    my $self = shift;
+    return $self->{_ref_count} == 0 && ($self->is_done || $self->is_parerr);
+}
+
+sub reference { $_[0]->{_ref_count}++ }
+sub unreference { $_[0]->{_ref_count}-- }
 
 ##### METHODS
 
@@ -136,8 +146,12 @@ sub _calc_eqns {
 			$runable_eqn .= " (_ranok('$aftname'))";
 			$parerr_eqn  .= " (_ranfail('$aftname')||_parerr('$aftname'))";
 		    }
+
 		    $aftref->{_after_children}{$self->{name}} = $self;
 		    $self->{_after_parents}{$aftref->{name}} = $aftref;
+		    weaken($aftref->{_after_children}{$self->{name}});
+		    weaken($self->{_after_parents}{$aftref->{name}});
+
 		    my $apo = $flip_op; $apo ||= 'O' if $between_op eq '||';
 		    $apo ||= '&';  $apo='E' if $apo eq '!';
 		    $self->{_after_parents_op}{$aftref->{name}} = $apo;
@@ -179,6 +193,9 @@ sub ready {
 
     # Transition: idle -> 'ready'
     print "  FrkProc $self->{name} $self->{_state} -> ready\n" if $Debug;
+    if (not $self->is_ready) {
+        $_->reference for values %{$self->{_after_parents}};
+    }
     $self->{_state} = 'ready';
     $self->_calc_runable();
 }
@@ -227,6 +244,26 @@ sub run_after {
     return $self;   # So can chain commands
 }
 
+sub reap {
+    my $self = shift;
+
+    $self->is_reapable or croak "%Error: process is not reapable,";
+    delete $self->{_forkref}{_processes}{$self->{name}};
+    if (defined $self->{label}) {
+	if (ref $self->{label}) {
+	    foreach my $label (@{$self->{label}}) {
+		@{$self->{_forkref}{_labels}{$label}} =
+		    grep { $_->{name} ne $self->{name} }
+		@{$self->{_forkref}{_labels}{$label}};
+	    }
+	} else {
+            @{$self->{_forkref}{_labels}{$self->{label}}} =
+		grep { $_->{name} ne $self->{name} }
+	    @{$self->{_forkref}{_labels}{$self->{label}}};
+	}
+    }
+}
+
 use vars qw($_Calc_Runable_Fork);
 
 sub _calc_runable {
@@ -259,7 +296,8 @@ sub _calc_runable {
 	$self->{_state} = 'runable';  # No dependencies (yet) so can launch it
 	$self->{_forkref}{_runable}{$self->{name}} = $self;
     } elsif (&{$self->{_parerr_eqn}}) {
-	$self->parerr;
+ 	$_->unreference for values %{$self->{_after_parents}};
+ 	$self->parerr;
     }
 }
 
@@ -292,6 +330,7 @@ sub poll {
 	foreach my $ra (values %{$self->{_after_children}}) {
 	    $ra->_calc_runable();
 	}
+ 	$_->unreference for values %{$self->{_after_parents}};
 	# Done
 	return $self;
     }
@@ -443,6 +482,10 @@ Returns true if the process is in the parent error state.
 
 Returns true if the process is in the ready state.
 
+=item is_reapable
+
+Returns true if the process is reapable (->reap may be called on it).
+
 =item is_runable
 
 Returns true if the process is in the runable state.
@@ -466,13 +509,13 @@ running.  If no signal is specified, send a SIGKILL (9).
 Send a signal to this child (and its subchildren) if it is running.  If no
 signal is specified, send a SIGKILL (9).
 
-=item name
-
-Return the name of the process.
-
 =item label
 
 Return the label of the process, if any, else undef.
+
+=item name
+
+Return the name of the process.
 
 =item pid
 
@@ -488,6 +531,13 @@ Generally Parallel::Forker's object method C<poll()> is used instead.
 Mark this process as being ready for execution when all C<run_after>'s are
 ready and CPU resources permit.  When that occurs, run will be called on
 the process automatically.
+
+=item reap
+
+When the process has no other processes waiting for it, and the process is
+is_done or is_parerr, remove the data structures for it.  This reclaims
+memory for when a large number of processes are being created, run, and
+destroyed.
 
 =item run
 

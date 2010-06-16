@@ -3,15 +3,15 @@
 
 package Parallel::Forker;
 require 5.006;
-use Time::HiRes qw (usleep);
+use Carp qw(carp croak confess);
 use IO::File;
+use Time::HiRes qw(usleep);
 
 use Parallel::Forker::Process;
 use strict;
-use Carp;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.225';
+$VERSION = '1.230';
 
 ######################################################################
 #### CONSTRUCTOR
@@ -94,6 +94,18 @@ sub wait_all {
 	$self->poll;
 	usleep 100*1000;
     };
+}
+
+sub reap_processes {
+    my $self = shift;
+
+    my @reaped;
+    foreach my $process ($self->processes) {
+	next unless $process->is_reapable;
+	$process->reap;
+ 	push @reaped, $process;
+    }
+    return @reaped;
 }
 
 sub is_any_left {
@@ -423,6 +435,13 @@ Return Parallel::Forker::Process objects for all processes, sorted by name.
 
 Mark all processes as ready for scheduling.
 
+=item $self->reap_processes
+
+Reap all processes which have no other processes waiting for them, and the
+process is is_done or is_parerr.  Returns list of processes reaped.  This
+reclaims memory for when a large number of processes are being created,
+run, and destroyed.
+
 =item $self->running
 
 Return Parallel::Forker::Process objects for all processes that are
@@ -440,7 +459,7 @@ follows:
 
 Optional name to use in C<run_after> commands.  Unlike C<name>, this may be
 reused, in which case C<run_after> will wait on all commands with the given
-label.
+label.  Labels must contain only [a-zA-Z0-9_].
 
 =item name
 

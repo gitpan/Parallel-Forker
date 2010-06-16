@@ -2,6 +2,14 @@ Revision history for Perl extension Parallel::Forker
 
 The contributors that suggested a given feature are shown in [].
 
+* Parallel::Forker 1.230 2010/06/16
+
+**	Add reap_processes and reap to reclaim memory. [by Muir Manders]
+
+***	Fix memory leak. [by Muir Manders]
+
+****	Fix Pod::Usage dependency, rt51024. [Andreas Koenig]
+
 * Parallel::Forker 1.225 2010/01/12
 
 ****	Documentation updates.
