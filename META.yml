@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Parallel-Forker
-version:            1.230
+version:            1.231
 abstract:           Parallel job forking and management, with expression based control
 author:
     - Wilson Snyder <wsnyder@wsnyder.org>
@@ -13,6 +13,7 @@ build_requires:
 requires:
     Proc::ProcessTable:  0.4
     Scalar::Util:        0
+    Test::More:          0
     Time::HiRes:         0
 no_index:
     directory:
